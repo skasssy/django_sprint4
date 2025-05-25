@@ -46,8 +46,8 @@ class PostDetailView(DetailView):
         if self.request.user.is_authenticated:
             return queryset.filter(
                 Q(is_published=True, category__is_published=True,
-                  pub_date__lte=timezone.now()) |
-                Q(author=self.request.user)
+                  pub_date__lte=timezone.now())
+                | Q(author=self.request.user)
             )
         return queryset.filter(
             is_published=True,
@@ -98,7 +98,7 @@ class ProfileView(DetailView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         posts = Post.objects.filter(author=self.object
-        ).select_related(
+                                    ).select_related(
             'author', 'category', 'location'
         ).annotate(
             comment_count=Count('comment')
