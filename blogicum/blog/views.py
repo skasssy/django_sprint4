@@ -38,15 +38,17 @@ class PostDetailView(DetailView):
     pk_url_kwarg = 'post_id'
 
     def get_queryset(self):
-        queryset = Post.objects.select_related('category', 'author', 'location').prefetch_related(
-            Prefetch('comment', queryset=Comment.objects.order_by('created_at'))
+        queryset = Post.objects.select_related('category', 'author', 'location'
+                                               ).prefetch_related(
+            Prefetch('comment',
+                     queryset=Comment.objects.order_by('created_at'))
         )
 
         if self.request.user.is_authenticated:
             return queryset.filter(
                 Q(is_published=True, category__is_published=True,
-                  pub_date__lte=timezone.now()) |
-                Q(author=self.request.user)
+                  pub_date__lte=timezone.now())
+                | Q(author=self.request.user)
             )
         return queryset.filter(
             is_published=True,
@@ -97,7 +99,7 @@ class ProfileView(DetailView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         posts = Post.objects.filter(author=self.object
-        ).select_related(
+                                    ).select_related(
             'author', 'category', 'location'
         ).annotate(
             comment_count=Count('comment')
@@ -118,8 +120,8 @@ class ProfileUpdateView(LoginRequiredMixin, UpdateView):
         return self.request.user
 
     def get_success_url(self):
-        return reverse_lazy('blog:profile', kwargs={'username':
-                                                    self.request.user.username})
+        return reverse_lazy('blog:profile',
+                            kwargs={'username': self.request.user.username})
 
 
 class PostCreateView(LoginRequiredMixin, CreateView):
@@ -151,13 +153,15 @@ class PostUpdateView(UserPassesTestMixin, UpdateView):
 
     def test_func(self):
         post = get_object_or_404(Post, pk=self.kwargs['post_id'])
-        return self.request.user.is_authenticated and post.author == self.request.user
+        return self.request.user.is_authenticated and \
+            post.author == self.request.user
 
     def handle_no_permission(self):
         return redirect('blog:post_detail', post_id=self.kwargs['post_id'])
 
     def get_success_url(self):
-        return reverse_lazy('blog:post_detail', kwargs={'post_id': self.object.pk})
+        return reverse_lazy('blog:post_detail',
+                            kwargs={'post_id': self.object.pk})
 
     def get_object(self, queryset=None):
         post = get_object_or_404(Post, pk=self.kwargs['post_id'])
@@ -216,7 +220,8 @@ class CommentUpdateView(LoginRequiredMixin, UpdateView):
         return comment
 
     def get_success_url(self):
-        return reverse_lazy('blog:post_detail', kwargs={'post_id': self.object.post.pk})
+        return reverse_lazy('blog:post_detail',
+                            kwargs={'post_id': self.object.post.pk})
 
 
 class CommentDeleteView(LoginRequiredMixin, DeleteView):
@@ -233,7 +238,8 @@ class CommentDeleteView(LoginRequiredMixin, DeleteView):
         return comment
 
     def get_success_url(self):
-        return reverse_lazy('blog:post_detail', kwargs={'post_id': self.object.post.pk})
+        return reverse_lazy('blog:post_detail',
+                            kwargs={'post_id': self.object.post.pk})
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)

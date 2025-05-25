@@ -3,7 +3,7 @@ from django.db import models
 
 
 class Post(models.Model):
-    author = models.ForeignKey(User, on_delete=models.CASCADE, 
+    author = models.ForeignKey(User, on_delete=models.CASCADE,
                                related_name='pages_posts')
     title = models.CharField(max_length=100)
     content = models.TextField()
